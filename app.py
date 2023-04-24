@@ -24,8 +24,8 @@ DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 class Prediction(Model):
     observation_id = TextField(unique=True)
     observation = TextField()
-    outcome = FloatField()
-    true_class = IntegerField(null=True)
+    predicted_outcome = FloatField()
+    true_outcome = TextField(null=True)
 
     class Meta:
         database = DB
@@ -62,19 +62,19 @@ def should_search():
     _id = obs_dict['observation_id']
     observation = obs_dict
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
-    outcome = pipeline.predict_proba(obs)[0, 1]
-    response = {'outcome': outcome}
+    predicted_outcome = pipeline.predict_proba(obs)[0, 1]
+    response = {'outcome': predicted_outcome}
 
     p = Prediction(
         observation_id=_id,
         observation=observation,
-        outcome=outcome
+        predicted_outcome=predicted_outcome
     )
 
     try:
         p.save()
     except IntegrityError:
-        error_msg = f"ERROR: Observation Id: '{_id}' already exists"
+        error_msg = f"Observation Id: '{_id}' already exists"
         response["error"] = error_msg
         print(error_msg)
         DB.rollback()
@@ -88,11 +88,16 @@ def search_result():
     try:
         p = Prediction.get(Prediction.observation_id ==
                            obs_dict['observation_id'])
-        p.true_class = obs_dict['outcome']
+        p.true_outcome = obs_dict['outcome']
         p.save()
-        return jsonify(model_to_dict(p))
+        response = {
+            "observation_id": p.observation_id,
+            "outcome": p.true_outcome,
+            "predicted_outcome": p.predicted_outcome
+        }
+        return jsonify(response)
     except Prediction.DoesNotExist:
-        error_msg = f"Observation Id: \'{obs_dict['observation_id']}\' does not exist."
+        error_msg = f"Observation Id: \'{obs_dict['observation_id']}\' does not exist"
         return jsonify({'error': error_msg})
 
 
