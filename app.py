@@ -1,8 +1,10 @@
 import os
 import json
+
+import pandas as pd
+
 import pickle
 import joblib
-import pandas as pd
 
 from flask import Flask, request, jsonify
 from peewee import (
@@ -92,6 +94,13 @@ def search_result():
     except Prediction.DoesNotExist:
         error_msg = f"Observation Id: \'{obs_dict['observation_id']}\' does not exist."
         return jsonify({'error': error_msg})
+
+
+@app.route('/list_data')
+def list_data():
+    return jsonify([
+        model_to_dict(obs) for obs in Prediction.select()
+    ])
 
 # End webserver
 ########################################
