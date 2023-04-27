@@ -56,7 +56,7 @@ pipeline = joblib.load('pipeline.pickle')
 app = Flask(__name__)
 
 
-@app.route('/should_search', methods=['POST'])
+@app.route('/should_search/', methods=['POST'])
 def should_search():
     obs_dict = request.get_json()
     _id = obs_dict['observation_id']
@@ -82,7 +82,7 @@ def should_search():
     return jsonify(response)
 
 
-@app.route('/search_result', methods=['POST'])
+@app.route('/search_result/', methods=['POST'])
 def search_result():
     obs_dict = request.get_json()
     try:
@@ -101,7 +101,7 @@ def search_result():
         return jsonify({'error': error_msg})
 
 
-@app.route('/list_data')
+@app.route('/list_data/')
 def list_data():
     return jsonify([
         model_to_dict(obs) for obs in Prediction.select()
