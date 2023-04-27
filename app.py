@@ -8,11 +8,19 @@ import joblib
 
 from flask import Flask, request, jsonify
 from peewee import (
-    SqliteDatabase, PostgresqlDatabase, Model, IntegerField,
-    FloatField, TextField, IntegrityError
+    Model, BooleanField, FloatField,
+    TextField, IntegrityError
 )
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
+
+########################################
+# Begin constants
+
+SUCCESS_RATE = 0.10
+
+# End constants
+########################################
 
 ########################################
 # Begin database
@@ -24,8 +32,9 @@ DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 class Prediction(Model):
     observation_id = TextField(unique=True)
     observation = TextField()
-    predicted_outcome = FloatField()
-    true_outcome = TextField(null=True)
+    proba = FloatField()
+    predicted_outcome = BooleanField()
+    true_outcome = BooleanField(null=True)
 
     class Meta:
         database = DB
@@ -62,12 +71,14 @@ def should_search():
     _id = obs_dict['observation_id']
     observation = obs_dict
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
-    predicted_outcome = pipeline.predict_proba(obs)[0, 1]
+    proba = pipeline.predict_proba(obs)[0, 1]
+    predicted_outcome = True if proba > SUCCESS_RATE else False
     response = {'outcome': predicted_outcome}
 
     p = Prediction(
         observation_id=_id,
         observation=observation,
+        proba=proba,
         predicted_outcome=predicted_outcome
     )
 
