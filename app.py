@@ -9,7 +9,7 @@ import joblib
 from flask import Flask, request, jsonify
 from peewee import (
     Model, BooleanField, FloatField,
-    TextField, IntegrityError
+    IntegerField, TextField, IntegrityError
 )
 from playhouse.shortcuts import model_to_dict
 from playhouse.db_url import connect
@@ -30,11 +30,25 @@ DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 
 
 class Prediction(Model):
-    observation_id = TextField(unique=True)
     observation = TextField()
     proba = FloatField()
     predicted_outcome = BooleanField()
     true_outcome = BooleanField(null=True)
+    observation_id = TextField(unique=True)
+    type = TextField()
+    date = TextField()
+    part_of_a_policing_operation = BooleanField()
+    latitude = FloatField()
+    longitude = FloatField()
+    gender = TextField()
+    age_range = TextField()
+    officer_defined_ethnicity = TextField()
+    legislation = TextField()
+    object_of_search = TextField()
+    station = TextField()
+    hour = IntegerField()
+    day_of_week = TextField()
+    month = IntegerField()
 
     class Meta:
         database = DB
@@ -67,27 +81,39 @@ app = Flask(__name__)
 
 @app.route('/should_search/', methods=['POST'])
 def should_search():
-    obs_dict = request.get_json()
-    _id = obs_dict['observation_id']
-    observation = obs_dict
+    observation = request.get_json()
     obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
     proba = pipeline.predict_proba(obs)[0, 1]
     predicted_outcome = True if proba > SUCCESS_RATE else False
     response = {'outcome': predicted_outcome}
 
     p = Prediction(
-        observation_id=_id,
         observation=observation,
         proba=proba,
-        predicted_outcome=predicted_outcome
+        predicted_outcome=predicted_outcome,
+        observation_id=observation['observation_id'],
+        type=observation['Type'],
+        date=observation['Date'],
+        part_of_a_policing_operation=observation['Part of a policing operation'],
+        latitude=observation['Latitude'],
+        longitude=observation['Longitude'],
+        gender=observation['Gender'],
+        age_range=observation['Age range'],
+        officer_defined_ethnicity=observation['Officer-defined ethnicity'],
+        legislation=observation['Legislation'],
+        object_of_search=observation['Object of search'],
+        station=observation['station'],
+        hour=19,
+        day_of_week='Friday',
+        month=7
     )
 
     try:
         p.save()
         return response
     except IntegrityError:
-        error_msg = f"Observation Id: '{_id}' already exists"
-        response["error"] = error_msg
+        error_msg = f"Observation Id: \'{observation['observation_id']}\' already exists"
+        response['error'] = error_msg
         print(error_msg)
         DB.rollback()
         return response, 405
