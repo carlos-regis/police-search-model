@@ -84,13 +84,13 @@ def should_search():
 
     try:
         p.save()
+        return response
     except IntegrityError:
         error_msg = f"Observation Id: '{_id}' already exists"
         response["error"] = error_msg
         print(error_msg)
         DB.rollback()
-
-    return jsonify(response)
+        return response, 405
 
 
 @app.route('/search_result/', methods=['POST'])
@@ -106,17 +106,21 @@ def search_result():
             "outcome": p.true_outcome,
             "predicted_outcome": p.predicted_outcome
         }
-        return jsonify(response)
+        return response
     except Prediction.DoesNotExist:
         error_msg = f"Observation Id: \'{obs_dict['observation_id']}\' does not exist"
-        return jsonify({'error': error_msg})
+        response = {
+            "error": error_msg
+        }
+        print(error_msg)
+        return response, 405
 
 
 @app.route('/list_data/')
 def list_data():
-    return jsonify([
+    return [
         model_to_dict(obs) for obs in Prediction.select()
-    ])
+    ]
 
 # End webserver
 ########################################
