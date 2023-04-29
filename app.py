@@ -389,7 +389,7 @@ def should_search():
         date=observation['Date'],
         part_of_a_policing_operation=obs.part_of_a_policing_operation,
         latitude=obs.latitude,
-        longitude=obs.ongitude,
+        longitude=obs.longitude,
         gender=obs.gender,
         age_range=obs.age_range,
         officer_defined_ethnicity=obs.officer_defined_ethnicity,
