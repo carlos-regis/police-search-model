@@ -411,10 +411,10 @@ def should_search():
     except IntegrityError as exception:
         DB.rollback()
         error_msg = (
-            f"Observation Id: \'{observation['observation_id']}\' already exists\n"
-            f"Peewee error message: {exception}\n"
+            f"Observation Id: \'{observation['observation_id']}\' already exists"
         )
         print(error_msg)
+        print(f"Peewee error message: {exception}\n")
         error_response = {
             "error": error_msg
         }
