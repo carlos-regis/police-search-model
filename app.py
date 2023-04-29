@@ -32,7 +32,7 @@ DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 
 class Prediction(Model):
     observation = TextField()
-    proba = FloatField()
+    probability = FloatField()
     predicted_outcome = BooleanField()
     true_outcome = BooleanField(null=True)
     observation_id = TextField(unique=True)
@@ -376,13 +376,14 @@ def should_search():
         return {"error": error_message}, 405
 
     obs = get_observation_dataframe(observation)
-    proba = pipeline.predict_proba(obs)[0, 1]
-    predicted_outcome = True if proba > SUCCESS_RATE else False
+    probability = pipeline.predict_proba(obs)[0, 1]
+    # predicted_outcome = True if proba > SUCCESS_RATE else False
+    predicted_outcome = pipeline.predict(obs)[0]
     response = {'outcome': predicted_outcome}
 
     p = Prediction(
         observation=observation,
-        proba=proba,
+        probability=probability,
         predicted_outcome=predicted_outcome,
         observation_id=observation['observation_id'],
         type=obs.type,
