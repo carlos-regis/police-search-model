@@ -370,7 +370,7 @@ def should_search():
 
     observation_ok, error_msg = check_observation(observation)
     if not observation_ok:
-        print(error_msg)
+        print(f"\n{error_msg}\n")
         error_response = {
             "error": error_msg
         }
@@ -407,7 +407,7 @@ def should_search():
         p.save()
 
         response = {'outcome': predicted_outcome}
-        print(response)
+        print(f"\n{response}\n")
 
         return response
 
@@ -415,7 +415,7 @@ def should_search():
         DB.rollback()
 
         error_msg = f"Observation Id: \'{observation['observation_id']}\' already exists"
-        print(error_msg)
+        print(f"\n{error_msg}\n")
         print(f"Peewee error message: {exception}\n")
         error_response = {
             "error": error_msg
@@ -426,7 +426,7 @@ def should_search():
     except Exception as exception:
 
         error_msg = f"Peewee error message: {exception}\n"
-        print(error_msg)
+        print(f"\n{error_msg}\n")
         error_response = {
             "error": error_msg
         }
@@ -438,28 +438,36 @@ def should_search():
 def search_result():
     observation = request.get_json()
 
-    result_ok, error_message = check_result(observation)
+    result_ok, error_msg = check_result(observation)
     if not result_ok:
-        return {"error": error_message}, 405
+        print(f"\n{error_msg}\n")
+        error_response = {
+            "error": error_msg
+        }
+
+        return error_response, 405
 
     try:
         p = Prediction.get(Prediction.observation_id ==
                            observation['observation_id'])
         p.true_outcome = observation['outcome']
         p.save()
+
         response = {
             "observation_id": p.observation_id,
             "outcome": p.true_outcome,
             "predicted_outcome": p.predicted_outcome
         }
-        print(response)
+        print(f"\n{response}\n")
+
         return response
+
     except Prediction.DoesNotExist:
         error_msg = f"Observation Id: \'{observation['observation_id']}\' does not exist"
         error_response = {
             "error": error_msg
         }
-        print(error_msg)
+        print(f"\n{error_msg}\n")
         return error_response, 405
 
 
@@ -468,14 +476,16 @@ def db_list():
     response = [
         model_to_dict(obs) for obs in Prediction.select()
     ]
-    print(response)
+    print(f"\n{response}\n")
+
     return response
 
 
 @app.route('/delete/')
 def delete():
     response = {'deleted_rows': Prediction.delete().execute()}
-    print(response)
+    print(f"\n{response}\n")
+
     return response
 
 # End webserver
