@@ -32,10 +32,10 @@ DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 
 class Prediction(Model):
     observation = TextField()
+    observation_id = TextField(unique=True)
     probability = FloatField()
     predicted_outcome = BooleanField()
     true_outcome = BooleanField(null=True)
-    observation_id = TextField(unique=True)
     type = TextField()
     date = TextField()
     part_of_a_policing_operation = BooleanField()
@@ -335,7 +335,8 @@ def check_result(observation):
 def get_observation_dataframe(raw_observation) -> pd.DataFrame:
     observation = {}
     observation['type'] = raw_observation['Type']
-    observation['part_of_a_policing_operation'] = raw_observation['Part of a policing operation']
+    observation['part_of_a_policing_operation'] = bool(
+        raw_observation['Part of a policing operation'])
     observation['latitude'] = raw_observation['Latitude']
     observation['longitude'] = raw_observation['Longitude']
     observation['gender'] = raw_observation['Gender']
@@ -377,37 +378,42 @@ def should_search():
 
     obs = get_observation_dataframe(observation)
     probability = pipeline.predict_proba(obs)[0, 1]
-    # predicted_outcome = True if proba > SUCCESS_RATE else False
-    predicted_outcome = pipeline.predict(obs)[0]
-    response = {'outcome': predicted_outcome}
+    # predicted_outcome = True if probability > SUCCESS_RATE else False
+    predicted_outcome = bool(pipeline.predict(obs)[0])
 
     p = Prediction(
         observation=observation,
+        observation_id=observation['observation_id'],
         probability=probability,
         predicted_outcome=predicted_outcome,
-        observation_id=observation['observation_id'],
-        type=obs.type,
+        type=obs.type[0],
         date=observation['Date'],
-        part_of_a_policing_operation=obs.part_of_a_policing_operation,
-        latitude=obs.latitude,
-        longitude=obs.longitude,
-        gender=obs.gender,
-        age_range=obs.age_range,
-        officer_defined_ethnicity=obs.officer_defined_ethnicity,
-        legislation=obs.legislation,
-        object_of_search=obs.object_of_search,
-        station=obs.station,
-        hour=obs.hour,
-        day_of_week=obs.day_of_week,
-        month=obs.month
+        part_of_a_policing_operation=obs.part_of_a_policing_operation[0],
+        latitude=obs.latitude[0],
+        longitude=obs.longitude[0],
+        gender=obs.gender[0],
+        age_range=obs.age_range[0],
+        officer_defined_ethnicity=obs.officer_defined_ethnicity[0],
+        legislation=obs.legislation[0],
+        object_of_search=obs.object_of_search[0],
+        station=obs.station[0],
+        hour=obs.hour[0],
+        day_of_week=obs.day_of_week[0],
+        month=obs.month[0]
     )
 
     try:
         p.save()
+
+        response = {'outcome': predicted_outcome}
+        print(response)
         return response
-    except IntegrityError:
+    except IntegrityError as exception:
         DB.rollback()
-        error_msg = f"Observation Id: \'{observation['observation_id']}\' already exists"
+        error_msg = (
+            f"Observation Id: \'{observation['observation_id']}\' already exists\n"
+            f"Peewee error message: {exception}\n"
+        )
         print(error_msg)
         error_response = {
             "error": error_msg
@@ -434,6 +440,7 @@ def search_result():
             "outcome": p.true_outcome,
             "predicted_outcome": p.predicted_outcome
         }
+        print(response)
         return response
     except Prediction.DoesNotExist:
         error_msg = f"Observation Id: \'{observation['observation_id']}\' does not exist"
@@ -444,11 +451,20 @@ def search_result():
         return error_response, 405
 
 
-@app.route('/list_data/')
-def list_data():
-    return [
+@app.route('/db_list/')
+def db_list():
+    response = [
         model_to_dict(obs) for obs in Prediction.select()
     ]
+    print(response)
+    return response
+
+
+@app.route('/delete/')
+def delete():
+    response = {'deleted_rows': Prediction.delete().execute()}
+    print(response)
+    return response
 
 # End webserver
 ########################################
