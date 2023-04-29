@@ -331,6 +331,32 @@ def check_result(observation):
 
     return True, ""
 
+
+def get_observation_dataframe(raw_observation) -> pd.DataFrame:
+    observation = {}
+    observation['type'] = raw_observation['Type']
+    observation['part_of_a_policing_operation'] = raw_observation['Part of a policing operation']
+    observation['latitude'] = raw_observation['Latitude']
+    observation['longitude'] = raw_observation['Longitude']
+    observation['gender'] = raw_observation['Gender']
+    observation['age_range'] = raw_observation['Age range']
+    observation['officer_defined_ethnicity'] = raw_observation['Officer-defined ethnicity']
+    observation['legislation'] = raw_observation['Legislation']
+    observation['object_of_search'] = raw_observation['Object of search']
+    observation['station'] = raw_observation['station']
+
+    df_iso = pd.DataFrame({'date': raw_observation['Date']}, index=[0])
+    df_iso.date = pd.to_datetime(df_iso.date, infer_datetime_format=True)
+    df_iso['hour'] = df_iso.date.dt.hour
+    df_iso['day_of_week'] = df_iso.date.dt.day_name()
+    df_iso['month'] = df_iso.date.dt.month
+
+    observation['hour'] = df_iso.hour.iloc[0]
+    observation['day_of_week'] = df_iso.day_of_week.iloc[0]
+    observation['month'] = df_iso.month.iloc[0]
+
+    return pd.DataFrame([observation], columns=columns).astype(dtypes)
+
 # End input validation functions
 ########################################
 
@@ -349,7 +375,7 @@ def should_search():
     if not observation_ok:
         return {"error": error_message}, 405
 
-    obs = pd.DataFrame([observation], columns=columns).astype(dtypes)
+    obs = get_observation_dataframe(observation)
     proba = pipeline.predict_proba(obs)[0, 1]
     predicted_outcome = True if proba > SUCCESS_RATE else False
     response = {'outcome': predicted_outcome}
@@ -359,20 +385,20 @@ def should_search():
         proba=proba,
         predicted_outcome=predicted_outcome,
         observation_id=observation['observation_id'],
-        type=observation['Type'],
+        type=obs.type,
         date=observation['Date'],
-        part_of_a_policing_operation=observation['Part of a policing operation'],
-        latitude=observation['Latitude'],
-        longitude=observation['Longitude'],
-        gender=observation['Gender'],
-        age_range=observation['Age range'],
-        officer_defined_ethnicity=observation['Officer-defined ethnicity'],
-        legislation=observation['Legislation'],
-        object_of_search=observation['Object of search'],
-        station=observation['station'],
-        hour=19,
-        day_of_week='Friday',
-        month=7
+        part_of_a_policing_operation=obs.part_of_a_policing_operation,
+        latitude=obs.latitude,
+        longitude=obs.ongitude,
+        gender=obs.gender,
+        age_range=obs.age_range,
+        officer_defined_ethnicity=obs.officer_defined_ethnicity,
+        legislation=obs.legislation,
+        object_of_search=obs.object_of_search,
+        station=obs.station,
+        hour=obs.hour,
+        day_of_week=obs.day_of_week,
+        month=obs.month
     )
 
     try:
