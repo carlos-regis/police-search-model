@@ -416,8 +416,6 @@ app = Flask(__name__)
 def should_search():
     observation = request.get_json()
 
-    print(observation)
-
     observation_ok, error_msg = check_observation(observation)
     if not observation_ok:
         print(f"\n{error_msg}\n")
