@@ -133,7 +133,7 @@ def check_valid_column(observation):
     return True, ""
 
 
-def check_categories(observation):
+def check_categorical_values(observation):
     """
         Validates that all categorical fields are in the observation and values are valid
 
@@ -145,60 +145,92 @@ def check_categories(observation):
 
     valid_category_map = {
         "Type": ['Person search', 'Person and Vehicle search', 'Vehicle search'],
-        "Part of a policing operation": [True, False],
+        "Part of a policing operation": [False, True],
         "Gender": ['Male', 'Female', 'Other'],
         "Age range": ['18-24', '25-34', 'over 34', '10-17', 'under 10'],
         "Officer-defined ethnicity": ['White', 'Black', 'Asian', 'Mixed', 'Other'],
         "Legislation": [
-            'Misuse of Drugs Act 1971 (section 23)',
             'Police and Criminal Evidence Act 1984 (section 1)',
-            'Criminal Justice and Public Order Act 1994 (section 60)',
+            'Misuse of Drugs Act 1971 (section 23)',
             'Firearms Act 1968 (section 47)',
-            'Criminal Justice Act 1988 (section 139B)',
-            'Psychoactive Substances Act 2016 (s36(2))',
             'Poaching Prevention Act 1862 (section 2)',
-            'Police and Criminal Evidence Act 1984 (section 6)',
+            'Psychoactive Substances Act 2016 (s36(2))',
+            'Criminal Justice and Public Order Act 1994 (section 60)',
+            'Criminal Justice Act 1988 (section 139B)',
+            'Psychoactive Substances Act 2016 (s37(2))',
             'Wildlife and Countryside Act 1981 (section 19)',
-            'Environmental Protection Act 1990 (section 34B )',
             'Aviation Security Act 1982 (section 27(1))',
-            'Deer Act 1991 (section 12)',
-            'Customs and Excise Management Act 1979 (section 163)',
-            'Crossbows Act 1987 (section 4)',
-            'Hunting Act 2004 (section 8)',
-            'Conservation of Seals Act 1970 (section 4)',
-            'Protection of Badgers Act 1992 (section 11)',
             'Public Stores Act 1875 (section 6)',
-            'Psychoactive Substances Act 2016 (s37(2))'
+            'Hunting Act 2004 (section 8)',
+            'Environmental Protection Act 1990 (section 34B )',
+            'Customs and Excise Management Act 1979 (section 163)',
+            'Police and Criminal Evidence Act 1984 (section 6)',
+            'Conservation of Seals Act 1970 (section 4)',
+            'Crossbows Act 1987 (section 4)',
+            'Deer Act 1991 (section 12)',
+            'Protection of Badgers Act 1992 (section 11)'
         ],
         "Object of search": [
-            'Controlled drugs',
-            'Offensive weapons',
-            'Stolen goods',
             'Article for use in theft',
-            'Evidence of offences under the Act',
-            'Articles for use in criminal damage',
+            'Controlled drugs',
+            'Stolen goods',
+            'Offensive weapons',
             'Anything to threaten or harm anyone',
+            'Articles for use in criminal damage',
             'Firearms',
-            'Fireworks',
-            'Psychoactive substances',
             'Game or poaching equipment',
-            'Detailed object of search unavailable',
+            'Psychoactive substances',
+            'Fireworks',
+            'Evidence of offences under the Act',
             'Goods on which duty has not been paid etc.',
+            'Detailed object of search unavailable',
             'Crossbows',
             'Evidence of wildlife offences',
             'Evidence of hunting any wild mammal with a dog',
             'Seals or hunting equipment'
         ],
         "station": [
-            'metropolitan', 'merseyside', 'thames-valley', 'west-yorkshire', 'south-yorkshire',
-            'hampshire', 'btp', 'kent', 'lancashire', 'hertfordshire',
-            'avon-and-somerset', 'essex', 'sussex', 'devon-and-cornwall', 'surrey',
-            'humberside', 'west-midlands', 'west-mercia', 'staffordshire', 'norfolk',
-            'leicestershire', 'cheshire', 'northumbria', 'cleveland', 'nottinghamshire',
-            'north-wales', 'suffolk', 'bedfordshire', 'lincolnshire', 'dyfed-powys',
-            'city-of-london', 'northamptonshire', 'warwickshire', 'durham', 'north-yorkshire',
-            'gloucestershire', 'derbyshire', 'cambridgeshire', 'cumbria', 'wiltshire',
-            'dorset'
+            'metropolitan',
+            'hampshire',
+            'sussex',
+            'south-yorkshire',
+            'staffordshire',
+            'bedfordshire',
+            'cumbria',
+            'nottinghamshire',
+            'warwickshire',
+            'devon-and-cornwall',
+            'leicestershire',
+            'durham',
+            'humberside',
+            'thames-valley',
+            'norfolk',
+            'lincolnshire',
+            'northamptonshire',
+            'kent',
+            'wiltshire',
+            'city-of-london',
+            'west-mercia',
+            'lancashire',
+            'cheshire',
+            'derbyshire',
+            'btp',
+            'surrey',
+            'hertfordshire',
+            'north-yorkshire',
+            'cambridgeshire',
+            'northumbria',
+            'west-yorkshire',
+            'north-wales',
+            'cleveland',
+            'gloucestershire',
+            'avon-and-somerset',
+            'dorset',
+            'suffolk',
+            'dyfed-powys',
+            'west-midlands',
+            'merseyside',
+            'essex'
         ]
     }
 
@@ -229,8 +261,20 @@ def check_coordinates(observation):
     latitude = observation.get('Latitude')
     longitude = observation.get('Longitude')
 
-    if (not isinstance(latitude, float)) or (not isinstance(longitude, float)):
-        error = "The Field `Latitude` or `Longitude` is not a float"
+    if latitude is None:
+        error = "Field `Latitude` is missing"
+        return False, error
+
+    if longitude is None:
+        error = "Field `Longitude` is missing"
+        return False, error
+
+    if not isinstance(latitude, float):
+        error = "The Field `Latitude` is not a float"
+        return False, error
+
+    if not isinstance(longitude, float):
+        error = "The Field `Longitude` is not a float"
         return False, error
 
     if latitude < -90. or latitude > 90.:
@@ -254,14 +298,18 @@ def check_date(observation):
         - error message: empty if all provided columns are valid, error message otherwise
     """
 
-    dt_str = observation.get('Date')
+    date_string = observation.get('Date')
 
-    if not isinstance(dt_str, str):
+    if date_string is None:
+        error = "Field `Date` missing"
+        return False, error
+
+    if not isinstance(date_string, str):
         error = "The Field `Date` is not a string"
         return False, error
 
     try:
-        datetime.fromisoformat(dt_str)
+        datetime.fromisoformat(date_string)
     except:
         error = "The Field `Date` is not in ISO8601 format"
         return False, error
@@ -285,7 +333,7 @@ def check_observation(observation):
     if not columns_ok:
         return False, error
 
-    categories_ok, error = check_categories(observation)
+    categories_ok, error = check_categorical_values(observation)
     if not categories_ok:
         return False, error
 
