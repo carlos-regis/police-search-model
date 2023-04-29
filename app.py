@@ -18,7 +18,7 @@ from playhouse.db_url import connect
 ########################################
 # Begin constants
 
-SUCCESS_RATE = 0.10
+THRESHOLD_LGBM = 0.16602175975807876
 
 # End constants
 ########################################
@@ -38,9 +38,9 @@ class Prediction(Model):
     true_outcome = BooleanField(null=True)
     type = TextField()
     date = TextField()
-    part_of_a_policing_operation = BooleanField()
-    latitude = FloatField()
-    longitude = FloatField()
+    part_of_a_policing_operation = BooleanField(null=True)
+    latitude = FloatField(null=True)
+    longitude = FloatField(null=True)
     gender = TextField()
     age_range = TextField()
     officer_defined_ethnicity = TextField()
@@ -145,7 +145,7 @@ def check_categorical_values(observation):
 
     valid_category_map = {
         "Type": ['Person search', 'Person and Vehicle search', 'Vehicle search'],
-        "Part of a policing operation": [False, True],
+        # "Part of a policing operation": [False, True],
         "Gender": ['Male', 'Female', 'Other'],
         "Age range": ['18-24', '25-34', 'over 34', '10-17', 'under 10'],
         "Officer-defined ethnicity": ['White', 'Black', 'Asian', 'Mixed', 'Other'],
@@ -416,6 +416,8 @@ app = Flask(__name__)
 def should_search():
     observation = request.get_json()
 
+    print(observation)
+
     observation_ok, error_msg = check_observation(observation)
     if not observation_ok:
         print(f"\n{error_msg}\n")
@@ -427,8 +429,7 @@ def should_search():
 
     obs = get_observation_dataframe(observation)
     probability = pipeline.predict_proba(obs)[0, 1]
-    # predicted_outcome = True if probability > SUCCESS_RATE else False
-    predicted_outcome = bool(pipeline.predict(obs)[0])
+    predicted_outcome = True if probability > THRESHOLD_LGBM else False
 
     p = Prediction(
         observation=observation,
