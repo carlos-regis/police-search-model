@@ -7,6 +7,7 @@ matplotlib==3.6.2       # additional - used by many units
 numpy==1.22.0           # base
 pandas==1.2.4           # base
 scikit-learn==0.24.2    # base
+lightgbm
 
 category_encoders==2.5.1.post0
 flask==2.2.2
