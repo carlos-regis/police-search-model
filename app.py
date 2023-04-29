@@ -115,10 +115,7 @@ def check_valid_column(observation):
         "Officer-defined ethnicity",
         "Legislation",
         "Object of search",
-        "station",
-        "hour",
-        "day_of_week",
-        "month"
+        "station"
     }
 
     keys = set(observation.keys())
@@ -202,8 +199,7 @@ def check_categories(observation):
             'city-of-london', 'northamptonshire', 'warwickshire', 'durham', 'north-yorkshire',
             'gloucestershire', 'derbyshire', 'cambridgeshire', 'cumbria', 'wiltshire',
             'dorset'
-        ],
-        "day_of_week": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        ]
     }
 
     for key, valid_categories in valid_category_map.items():
@@ -372,9 +368,14 @@ app = Flask(__name__)
 def should_search():
     observation = request.get_json()
 
-    observation_ok, error_message = check_observation(observation)
+    observation_ok, error_msg = check_observation(observation)
     if not observation_ok:
-        return {"error": error_message}, 405
+        print(error_msg)
+        error_response = {
+            "error": error_msg
+        }
+
+        return error_response, 405
 
     obs = get_observation_dataframe(observation)
     probability = pipeline.predict_proba(obs)[0, 1]
@@ -407,14 +408,25 @@ def should_search():
 
         response = {'outcome': predicted_outcome}
         print(response)
+
         return response
+
     except IntegrityError as exception:
         DB.rollback()
-        error_msg = (
-            f"Observation Id: \'{observation['observation_id']}\' already exists"
-        )
+
+        error_msg = f"Observation Id: \'{observation['observation_id']}\' already exists"
         print(error_msg)
         print(f"Peewee error message: {exception}\n")
+        error_response = {
+            "error": error_msg
+        }
+
+        return error_response, 405
+
+    except Exception as exception:
+
+        error_msg = f"Peewee error message: {exception}\n"
+        print(error_msg)
         error_response = {
             "error": error_msg
         }
