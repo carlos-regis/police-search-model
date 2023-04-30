@@ -376,10 +376,14 @@ def check_result(observation):
     return True, ""
 
 
+def validate_part_of_a_policing_operation(raw_observation) -> bool:
+    return raw_observation if isinstance(raw_observation, bool) else False
+
+
 def get_observation_dataframe(raw_observation) -> pd.DataFrame:
     observation = {}
     observation['type'] = raw_observation['Type']
-    observation['part_of_a_policing_operation'] = bool(
+    observation['part_of_a_policing_operation'] = validate_part_of_a_policing_operation(
         raw_observation['Part of a policing operation'])
     observation['latitude'] = raw_observation['Latitude']
     observation['longitude'] = raw_observation['Longitude']
@@ -414,6 +418,7 @@ app = Flask(__name__)
 
 @app.route('/should_search/', methods=['POST'])
 def should_search():
+
     observation = request.get_json()
 
     observation_ok, error_msg = check_observation(observation)
@@ -429,6 +434,10 @@ def should_search():
     probability = pipeline.predict_proba(obs)[0, 1]
     predicted_outcome = True if probability > THRESHOLD_LGBM else False
 
+    print('part_of_a_policing_operation type:',
+          type(bool(obs.part_of_a_policing_operation[0])))
+    print('part_of_a_policing_operation:', obs.part_of_a_policing_operation[0])
+
     p = Prediction(
         observation=observation,
         observation_id=observation['observation_id'],
@@ -436,7 +445,7 @@ def should_search():
         predicted_outcome=predicted_outcome,
         type=obs.type[0],
         date=observation['Date'],
-        part_of_a_policing_operation=obs.part_of_a_policing_operation[0],
+        part_of_a_policing_operation=bool(obs.part_of_a_policing_operation[0]),
         latitude=obs.latitude[0],
         longitude=obs.longitude[0],
         gender=obs.gender[0],
