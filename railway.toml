@@ -1,11 +1,10 @@
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
-buildCommand = "echo building!"
 
 [deploy]
-startCommand = "echo starting!"
+startCommand = "echo Starting police search app"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
-healthcheckPath = "/"
+healthcheckPath = "/should_search/"
 healthcheckTimeout = 300
