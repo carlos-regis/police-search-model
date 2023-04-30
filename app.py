@@ -540,6 +540,11 @@ def delete():
 
     return response
 
+
+@app.route('/')
+def home():
+    return {'greeting': "Hello Data Science World!!!"}
+
 # End webserver
 ########################################
 
