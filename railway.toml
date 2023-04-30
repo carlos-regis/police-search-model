@@ -6,3 +6,5 @@ dockerfilePath = "Dockerfile"
 startCommand = "echo Starting police search app"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
+healthcheckPath = "/health/"
+healthcheckTimeout = 120
