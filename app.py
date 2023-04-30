@@ -543,7 +543,12 @@ def delete():
 
 @app.route('/health/')
 def health():
-    return {'greeting': "Hello Data Science World!!!"}
+    return "I am feeling very healthy now!!!"
+
+
+@app.route('/')
+def home():
+    return "Hello Data Science World!!!"
 
 # End webserver
 ########################################
