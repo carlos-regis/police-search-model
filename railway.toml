@@ -3,6 +3,5 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "echo Starting police search app"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
