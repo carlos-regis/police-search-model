@@ -434,10 +434,6 @@ def should_search():
     probability = pipeline.predict_proba(obs)[0, 1]
     predicted_outcome = True if probability > THRESHOLD_LGBM else False
 
-    print('part_of_a_policing_operation type:',
-          type(bool(obs.part_of_a_policing_operation[0])))
-    print('part_of_a_policing_operation:', obs.part_of_a_policing_operation[0])
-
     p = Prediction(
         observation=observation,
         observation_id=observation['observation_id'],
