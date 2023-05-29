@@ -18,7 +18,7 @@ from playhouse.db_url import connect
 ########################################
 # Begin constants
 
-THRESHOLD_LGBM = 0.16602175975807876
+THRESHOLD_PROB = 0.10
 
 # End constants
 ########################################
@@ -26,7 +26,6 @@ THRESHOLD_LGBM = 0.16602175975807876
 ########################################
 # Begin database
 
-# DB = SqliteDatabase('predictions.db')
 DB = connect(os.environ.get('DATABASE_URL') or 'sqlite:///predictions.db')
 
 
@@ -432,7 +431,7 @@ def should_search():
 
     obs = get_observation_dataframe(observation)
     probability = pipeline.predict_proba(obs)[0, 1]
-    predicted_outcome = True if probability > THRESHOLD_LGBM else False
+    predicted_outcome = True if probability > THRESHOLD_PROB else False
 
     p = Prediction(
         observation=observation,
@@ -476,6 +475,7 @@ def should_search():
         return error_response, 405
 
     except Exception as exception:
+        DB.rollback()
 
         error_msg = f"Peewee error message: {exception}\n"
         print(f"\n{error_msg}\n")
