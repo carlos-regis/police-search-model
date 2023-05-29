@@ -19,7 +19,7 @@ from playhouse.db_url import connect
 ########################################
 # Begin constants
 
-THRESHOLD_PROB = 0.10
+THRESHOLD_OPTIMAL_FAIRNESS = 0.17
 
 # End constants
 ########################################
