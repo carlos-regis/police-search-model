@@ -43,7 +43,7 @@ class Prediction(Model):
     gender = TextField()
     age_range = TextField()
     officer_defined_ethnicity = TextField()
-    legislation = TextField()
+    #legislation = TextField()
     object_of_search = TextField()
     station = TextField()
     hour = IntegerField()
@@ -389,7 +389,7 @@ def get_observation_dataframe(raw_observation) -> pd.DataFrame:
     observation['gender'] = raw_observation['Gender']
     observation['age_range'] = raw_observation['Age range']
     observation['officer_defined_ethnicity'] = raw_observation['Officer-defined ethnicity']
-    observation['legislation'] = raw_observation['Legislation']
+    #observation['legislation'] = raw_observation['Legislation']
     observation['object_of_search'] = raw_observation['Object of search']
     observation['station'] = raw_observation['station']
 
@@ -446,7 +446,7 @@ def should_search():
         gender=obs.gender[0],
         age_range=obs.age_range[0],
         officer_defined_ethnicity=obs.officer_defined_ethnicity[0],
-        legislation=obs.legislation[0],
+        #legislation=obs.legislation[0],
         object_of_search=obs.object_of_search[0],
         station=obs.station[0],
         hour=obs.hour[0],
