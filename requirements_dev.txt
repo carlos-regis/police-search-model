@@ -1,5 +1,5 @@
 ipython==8.4.0          # base
-nbgrader==0.7.0         # base
+#nbgrader==0.7.0         # base
 notebook==6.4.0         # base
 jupyter-client==6.1.12  # base
 
@@ -7,11 +7,11 @@ matplotlib==3.6.2       # additional - used by many units
 numpy==1.22.0           # base
 pandas==1.2.4           # base
 
-scikit-learn==1.1.0    # base
+scikit-learn==1.0.2    # base
 lightgbm==3.3.3
+#category_encoders==2.5.1.post0
 
-category_encoders==2.5.1.post0
 flask==2.2.2
+gunicorn==20.1.0
 peewee==3.15.4
 psycopg2-binary==2.9.5
-gunicorn==20.1.0
