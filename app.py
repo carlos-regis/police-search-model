@@ -432,7 +432,7 @@ def should_search():
 
     obs = get_observation_dataframe(observation)
     probability = pipeline.predict_proba(obs)[0, 1]
-    predicted_outcome = True if probability > THRESHOLD_PROB else False
+    predicted_outcome = True if probability > THRESHOLD_OPTIMAL_FAIRNESS else False
 
     p = Prediction(
         observation=observation,
