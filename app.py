@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import sys
 import json
 
 import pandas as pd
@@ -422,7 +423,7 @@ def should_search():
 
     observation_ok, error_msg = check_observation(observation)
     if not observation_ok:
-        print(f"\n{error_msg}\n")
+        print(f"\n{error_msg}\n", file=sys.stderr)
         error_response = {
             "error": error_msg
         }
@@ -458,7 +459,7 @@ def should_search():
         p.save()
 
         response = {'outcome': predicted_outcome}
-        print(f"\n{response}\n")
+        print(f"\n{response}\n", file=sys.stderr)
 
         return response
 
@@ -466,8 +467,8 @@ def should_search():
         DB.rollback()
 
         error_msg = f"Observation Id: \'{observation['observation_id']}\' already exists"
-        print(f"\n{error_msg}\n")
-        print(f"Peewee error message: {exception}\n")
+        print(f"\n{error_msg}\n", file=sys.stderr)
+        print(f"Peewee error message: {exception}\n", file=sys.stderr)
         error_response = {
             "error": error_msg
         }
@@ -478,7 +479,7 @@ def should_search():
         DB.rollback()
 
         error_msg = f"Peewee error message: {exception}\n"
-        print(f"\n{error_msg}\n")
+        print(f"\n{error_msg}\n", file=sys.stderr)
         error_response = {
             "error": error_msg
         }
@@ -492,7 +493,7 @@ def search_result():
 
     result_ok, error_msg = check_result(observation)
     if not result_ok:
-        print(f"\n{error_msg}\n")
+        print(f"\n{error_msg}\n", file=sys.stderr)
         error_response = {
             "error": error_msg
         }
@@ -510,7 +511,7 @@ def search_result():
             "outcome": p.true_outcome,
             "predicted_outcome": p.predicted_outcome
         }
-        print(f"\n{response}\n")
+        print(f"\n{response}\n", file=sys.stderr)
 
         return response
 
@@ -519,7 +520,7 @@ def search_result():
         error_response = {
             "error": error_msg
         }
-        print(f"\n{error_msg}\n")
+        print(f"\n{error_msg}\n", file=sys.stderr)
         return error_response, 405
 
 
@@ -528,7 +529,7 @@ def db_list():
     response = [
         model_to_dict(obs) for obs in Prediction.select()
     ]
-    print(f"\n{response}\n")
+    print(f"\n{response}\n", file=sys.stderr)
 
     return response
 
@@ -536,7 +537,7 @@ def db_list():
 @app.route('/delete/')
 def delete():
     response = {'deleted_rows': Prediction.delete().execute()}
-    print(f"\n{response}\n")
+    print(f"\n{response}\n", file=sys.stderr)
 
     return response
 
